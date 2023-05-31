@@ -2,3 +2,4 @@
 *.tar
 *.bin
 *__pycache__/
+ctcdecode/
