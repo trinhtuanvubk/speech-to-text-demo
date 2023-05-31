@@ -5,9 +5,9 @@ toml==0.10.2
 librosa==0.9.1
 pandarallel==1.6.1
 
-python-Levenshtein == 0.12.2
-six == 1.16.0
-ctc-segmentation == 1.7.1
+python-Levenshtein==0.12.2
+six==1.16.0
+ctc-segmentation==1.7.1
 inflect
 
 
