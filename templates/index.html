@@ -28,28 +28,27 @@
 </head>
 <body>
 <div id="main">
-    <h2>Nhận dạng giọng nói - <a href="https://github.com/dangvansam98/viet-asr">VietASR</span></h2>
-        <a href="https://github.com/dangvansam98">by github.com/dangvansam98</a> 
+    <h2>Speech Recognition - Wav2Vec2 </h2>
 
     <hr style="width:50%";>
     <div id="div_record">
         <p><a id="status"></a></p>
-        <a style="font-style: italic;">Ghi âm trực tiếp bằng microphone</a>
+        <a style="font-style: italic;">Record from microphone</a>
         <p></p>
-        <button class="btn btn-primary" id="record">Bắt đầu thu âm</button>
-        <button class="btn btn-danger" id="stopRecord" >Dừng</button>
+        <button class="btn btn-primary" id="record">Start Recording</button>
+        <button class="btn btn-danger" id="stopRecord" >Stop Recording</button>
     </div>
     <div id="div_upload">
         <hr style="width:50%";>
-        <a style="font-style: italic;">Tải lên file (wav, mp3)</a>
+        <a style="font-style: italic;">Upload file (wav, mp3)</a>
         <p></p>
         <form name ='upload' method="post" action="/upload" enctype="multipart/form-data">
-            <div class="custom-file" style="width:90%">
+            <div class="custom-file" style="width:50%">
                 <input type="file" name="file" class="custom-file-input" id="input_file">
-                <label class="custom-file-label" for="inputGroupFile01" id="label_input">Chọn file</label>
+                <label class="custom-file-label" for="inputGroupFile01" id="label_input">Choose file </label>
               </div>
             <p></p>
-            <button type="submit" class="btn btn-primary" style="margin-bottom: 10px;">Tải lên</button>
+            <button type="submit" class="btn btn-primary" style="margin-bottom: 10px;">Upload</button>
         </form>
         <script>
             $("#input_file").change(function(){
@@ -62,7 +61,7 @@
     <audio id="recordedAudio" controls autoplay>
         <source src= "{{audiopath}}" type="audio/wav">
     </audio>
-    <h5 style="color: royalblue;">Kết quả nhận dạng</h5>
+    <h5 style="color: royalblue;">Transcription</h5>
     <p></p>
     <h5 id="transcript">{{transcript}}</h5>
     <div>
@@ -158,7 +157,7 @@
             record.style.display = "None";
             div_upload.style.display = "None";
             stopRecord.style.display = "unset";
-            document.getElementById("status").innerHTML = 'Trạng thái: <span style="color: mediumseagreen;">Đang ghi âm</span>';
+            document.getElementById("status").innerHTML = 'Status: <span style="color: mediumseagreen;">Recording</span>';
             audio_signal = []
             leftchannel = []
             rightchannel = []
@@ -170,7 +169,7 @@
         stopRecord.onclick = function() {
             console.log("stop")
             //alert("stop")
-            document.getElementById("status").innerHTML = 'Trạng thái: <span style="color: mediumseagreen;">Dừng ghi âm</span>';
+            document.getElementById("status").innerHTML = 'Status: <span style="color: mediumseagreen;">Recorded</span>';
             record.style.display = "unset";
             record.disabled = true;
             stopRecord.style.display = "None";
@@ -209,7 +208,7 @@
             }
 
             var blob = new Blob([view], { type: 'audio/wav' });
-            document.getElementById("status").innerHTML = 'Trạng thái: <span style="color: mediumseagreen;">Đang nhận dạng</span>';
+            document.getElementById("status").innerHTML = 'Status: <span style="color: mediumseagreen;">Transcribing</span>';
             var reader = new FileReader();
             reader.readAsDataURL(blob); 
             reader.onloadend = function () { 
@@ -220,7 +219,7 @@
                 filepath = data['filepath']
                 console.log(filepath)
                 console.log(data['transcript'])
-                document.getElementById("status").innerHTML = 'Trạng thái: <span style="color: mediumseagreen;">Hoàn thành</span>';
+                document.getElementById("status").innerHTML = 'Status: <span style="color: mediumseagreen;">Transcribed</span>';
                 document.getElementById("transcript").innerText = data['transcript'];
                 recordedAudio.src = data['filepath']
                 recordedAudio.controls=true;

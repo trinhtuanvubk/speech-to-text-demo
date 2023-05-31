@@ -1,2 +1,4 @@
 *.arpa
 *.tar
+*.bin
+*__pycache__/

@@ -87,9 +87,11 @@ class Inferencer:
         else:
             wav, _ = librosa.load(test_filepath, sr = 16000)
             if self.use_lm:
-                print(f"transcript_lm: {self.transcribe_with_lm(wav)}")
+                # print(f"transcript_lm: {self.transcribe_with_lm(wav)}")
+                return self.transcribe_with_lm(wav)
             else:
-                print(f"transcript: {self.transcribe(wav)}")
+                # print(f"transcript: {self.transcribe(wav)}")
+                return self.transcribe(wav)
 
 
 if __name__ == '__main__':
@@ -116,6 +118,6 @@ if __name__ == '__main__':
         lm_path = args.language_model_path,
         use_lm = args.use_language_model)
 
-    # inferencer.run(args.test_filepath)
-    inferencer.preload_model
+    inferencer.run(args.test_filepath)
+    # inferencer.preload_model
 

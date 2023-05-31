@@ -3,29 +3,30 @@ import requests
 import base64
 import time
 import librosa
+import torch
 from flask import Flask, redirect, render_template, request, session
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
-# from scipy.io.wavfile import write as write_wav
 from loguru import logger
 
-from infer import VietASR
+# from infer import VietASR
+from inference import Inferencer
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "dangvansam"
 socketio = SocketIO(app)
 
-config = 'configs/quartznet12x1_vi.yaml'
-encoder_checkpoint = 'models/acoustic_model/vietnamese/JasperEncoder-STEP-289936.pt'
-decoder_checkpoint = 'models/acoustic_model/vietnamese/JasperDecoderForCTC-STEP-289936.pt'
-# lm_path = 'models/language_model/3-gram-lm.binary'
-lm_path = None 
 
-vietasr = VietASR(
-    config_file=config,
-    encoder_checkpoint=encoder_checkpoint,
-    decoder_checkpoint=decoder_checkpoint,
-    lm_path=lm_path,
-    beam_width=50
+lm_path = "model_repository/language_model/4gram_small.arpa"
+
+
+device = f"cuda:{args.device_id}" if torch.cuda.is_available() else "cpu"
+
+wav2vec2 = Inferencer(
+        device = "cpu", 
+        huggingface_folder = "./model_repository/huggingface-hub", 
+        model_path = "./model_repository/w2v2_ckpt/best_model.tar",
+        lm_path = lm_path,
+        use_lm = True
 )
 
 STATIC_DIR = "static"
@@ -64,8 +65,8 @@ def handle_audio_from_client(data):
     decode_string = base64.b64decode(data["audio_base64"].split(",")[1])
     audio_file.write(decode_string)
     logger.info("asr processing...")
-    audio_signal, _ = librosa.load(filepath, sr=16000)
-    transcript = vietasr.transcribe(audio_signal)
+    transcript = wav2vec2.run(filepath)
+    transcript = transcript.lower()
     logger.success(f'transcript: {transcript}')
     emit('audio_to_client', {'filepath': filepath, 'transcript': transcript})
 
@@ -80,8 +81,8 @@ def handle_upload():
         filepath = os.path.join(STATIC_DIR, UPLOAD_DIR, _file.filename)
         _file.save(filepath)
         logger.info(f'saved file to: {filepath}')
-        audio_signal, _ = librosa.load(filepath, sr=16000)
-        transcript = vietasr.transcribe(audio_signal)
+        transcript = wav2vec2.run(filepath)
+        transcript = transcript.lower()
         logger.info(f'transcript: {transcript}')
         return render_template(
             template_name_or_list='index.html',
@@ -92,5 +93,5 @@ def handle_upload():
         return redirect("/")
 
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=1513,
+    socketio.run(app, host="0.0.0.0", port=1514,
                  ssl_context="adhoc", debug=False)
