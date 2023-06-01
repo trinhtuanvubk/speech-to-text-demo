@@ -12,7 +12,6 @@ from loguru import logger
 from inference import Inferencer
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "dangvansam"
 socketio = SocketIO(app)
 
 
