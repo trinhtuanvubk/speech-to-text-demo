@@ -93,5 +93,5 @@ def handle_upload():
         return redirect("/")
 
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=1514,
+    socketio.run(app, host="0.0.0.0", port=1435,
                  ssl_context="adhoc", debug=False)
