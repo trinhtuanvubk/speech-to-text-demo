@@ -17,6 +17,8 @@ class Inferencer:
         if model_path is not None:
             self.preload_model(model_path)
         self.lm_path = lm_path
+        if lm_path is not None: 
+            self.beam_decoder = self.preload_lm(lm_path)
 
 
     def preload_model(self, model_path) -> None:
@@ -31,15 +33,7 @@ class Inferencer:
         self.model.load_state_dict(checkpoint["model"], strict = True)
         print(f"Model preloaded successfully from {model_path}.")
 
-
-    def transcribe(self, wav) -> str:
-        input_values = self.processor(wav, sampling_rate=16000, return_tensors="pt").input_values
-        logits = self.model(input_values.to(self.device)).logits
-        pred_ids = torch.argmax(logits, dim=-1)
-        pred_transcript = self.processor.batch_decode(pred_ids)[0]
-        return pred_transcript
-
-    def transcribe_with_lm(self, wav) -> str:
+    def preload_lm(self, lm_path):
         vocab_dict = self.processor.tokenizer.get_vocab()
         sort_vocab = sorted((value, key) for (key,value) in vocab_dict.items())
 
@@ -56,11 +50,22 @@ class Inferencer:
                                  cutoff_top_n=40, cutoff_prob=1.0,
                                  beam_width=32, num_processes=16,
                                  blank_index=vocab.index(self.processor.tokenizer.pad_token))
+        
+        return beam_decoder
 
+
+    def transcribe(self, wav) -> str:
+        input_values = self.processor(wav, sampling_rate=16000, return_tensors="pt").input_values
+        logits = self.model(input_values.to(self.device)).logits
+        pred_ids = torch.argmax(logits, dim=-1)
+        pred_transcript = self.processor.batch_decode(pred_ids)[0]
+        return pred_transcript
+
+    def transcribe_with_lm(self, wav) -> str:
 
         input_values = self.processor(wav, sampling_rate=16000, return_tensors="pt").input_values
         logits = self.model(input_values.to(self.device)).logits
-        beam_decoded_output, beam_decoded_offsets = beam_decoder.decode(logits)
+        beam_decoded_output, beam_decoded_offsets = self.beam_decoder.decode(logits)
         beam_trans = beam_decoded_output[0][0]
 
         return beam_trans.upper()
