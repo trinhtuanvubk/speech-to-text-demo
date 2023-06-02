@@ -29,7 +29,7 @@ class Inferencer:
         """
         assert os.path.exists(model_path), f"The file {model_path} is not exist. please check path."
         checkpoint = torch.load(model_path, map_location=self.device)
-        print(checkpoint['best_score'])
+        # print(checkpoint['best_score'])
         self.model.load_state_dict(checkpoint["model"], strict = True)
         print(f"Model preloaded successfully from {model_path}.")
 
