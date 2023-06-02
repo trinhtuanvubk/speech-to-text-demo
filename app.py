@@ -5,28 +5,39 @@ import time
 import librosa
 import torch
 from flask import Flask, redirect, render_template, request, session
-from flask_socketio import SocketIO, send, emit, join_room, leave_room
+from flask_socketio import SocketIO, send, emit, join_room, leave_room\
+
+import argparse
 from loguru import logger
 
-# from infer import VietASR
+
 from inference import Inferencer
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--lm_path', type=str,
+                    default="./model_repository/language_model/4gram_small.arpa")
+parser.add_argument('--huggingface_folder', type=str,
+                    default="./model_repository/huggingface-hub")
+parser.add_argument('--model_path', type=str,
+                    default="./model_repository/w2v2_ckpt/best_model.tar")
+parser.add_argument('--use_language_model', action="store_true")
+parser.add_argument('--device', type=int, default="cpu")
+parser.add_argument('--port', type=int, default=1435)
+args = parser.parse_args()
+
+device = f"cuda:{args.device_id}" if torch.cuda.is_available() else "cpu"
+wav2vec2 = Inferencer(
+    device=device,
+    huggingface_folder=args.huggingface_folder,
+    model_path=args.model_path,
+    lm_path=args.lm_path,
+    use_lm=args.use_language_model
+)
+
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-
-lm_path = "model_repository/language_model/4gram_small.arpa"
-
-
-device = f"cuda:{args.device_id}" if torch.cuda.is_available() else "cpu"
-
-wav2vec2 = Inferencer(
-        device = "cpu", 
-        huggingface_folder = "./model_repository/huggingface-hub", 
-        model_path = "./model_repository/w2v2_ckpt/best_model.tar",
-        lm_path = lm_path,
-        use_lm = True
-)
 
 STATIC_DIR = "static"
 UPLOAD_DIR = "upload"
@@ -34,6 +45,7 @@ RECORD_DIR = "record"
 
 os.makedirs(os.path.join(STATIC_DIR, UPLOAD_DIR), exist_ok=True)
 os.makedirs(os.path.join(STATIC_DIR, RECORD_DIR), exist_ok=True)
+
 
 @app.route("/")
 def index():
@@ -90,6 +102,7 @@ def handle_upload():
         )
     else:
         return redirect("/")
+
 
 if __name__ == '__main__':
     socketio.run(app, host="0.0.0.0", port=1435,
