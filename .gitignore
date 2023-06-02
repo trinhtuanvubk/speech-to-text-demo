@@ -3,3 +3,5 @@
 *.bin
 *__pycache__/
 ctcdecode/
+static/
+templates/index_*
