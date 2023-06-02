@@ -24,7 +24,8 @@ python3 app.py \
 --use_language_model
 ```
 - Flag: 
-        - `--model_path`: path to finetuned model
+
+        -`--model_path`: path to finetuned model
         - `--lm_path`: path to language model
         - `--device`: select gpu device (`0`, `1`, ...). Remove this arg if using `cpu`
         - `--port`: port to run demo
