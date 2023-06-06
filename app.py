@@ -105,5 +105,5 @@ def handle_upload():
 
 
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=1435,
+    socketio.run(app, host="0.0.0.0", port=args.port,
                  ssl_context="adhoc", debug=False)
