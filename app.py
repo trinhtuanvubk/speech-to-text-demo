@@ -5,7 +5,7 @@ import time
 import librosa
 import torch
 from flask import Flask, redirect, render_template, request, session
-from flask_socketio import SocketIO, send, emit, join_room, leave_room\
+from flask_socketio import SocketIO, send, emit, join_room, leave_room
 
 import argparse
 from loguru import logger
