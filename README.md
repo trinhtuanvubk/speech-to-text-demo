@@ -4,13 +4,6 @@
 
 - To create Docker environment:
 ```
-docker pull trinhtuanvubk/torch-w2v2:demofix
-docker run -p 1430-1440:1430-1440 --add-host=host.docker.internal:host-gateway --restart always -itd -v $PWD/:/workspace --name torch-w2v2-demo -w/workspace trinhtuanvubk/torch-w2v2:demofix
-docker exec -it torch-w2v2-demo bash
-```
-
-- To create Docker environment:
-```
 docker build -t torch-w2v2:demo .
 docker run -p 1430-1440:1430-1440 --add-host=host.docker.internal:host-gateway --restart always -itd -v $PWD/:/workspace --name torch-w2v2-demo -w/workspace torch-w2v2:demo
 docker exec -it torch-w2v2-demo bash
