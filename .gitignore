@@ -2,6 +2,6 @@
 *.tar
 *.bin
 *__pycache__/
-ctcdecode/
+/ctcdecode/
 static/
 templates/index_*

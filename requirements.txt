@@ -9,7 +9,7 @@ python-Levenshtein==0.12.2
 six==1.16.0
 ctc-segmentation==1.7.1
 inflect
-
+loguru==0.7.0
 
 Cython
 wheel
