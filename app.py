@@ -9,7 +9,7 @@ from flask_socketio import SocketIO, send, emit, join_room, leave_room
 
 import argparse
 from loguru import logger
-
+from six.moves import queue
 
 from inference import Inferencer
 
@@ -34,6 +34,9 @@ wav2vec2 = Inferencer(
     use_lm=args.use_language_model
 )
 
+asr_buff = queue.Queue()
+asr_trans = queue.Queue()
+
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -50,7 +53,7 @@ os.makedirs(os.path.join(STATIC_DIR, RECORD_DIR), exist_ok=True)
 @app.route("/")
 def index():
     return render_template(
-        template_name_or_list="index.html",
+        template_name_or_list="index_dev.html",
         audio_path=None,
         async_mode=socketio.async_mode
     )
@@ -70,16 +73,22 @@ def response_to_client(data):
 
 @socketio.on('audio_to_server')
 def handle_audio_from_client(data):
-    filename = time.strftime("%Y%m%d_%H%M%S")
-    filepath = os.path.join(STATIC_DIR, RECORD_DIR, filename + ".wav")
-    audio_file = open(filepath, "wb")
-    decode_string = base64.b64decode(data["audio_base64"].split(",")[1])
-    audio_file.write(decode_string)
-    logger.info("asr processing...")
-    transcript = wav2vec2.run(filepath)
+    # filename = time.strftime("%Y%m%d_%H%M%S")
+    # filepath = os.path.join(STATIC_DIR, RECORD_DIR, filename + ".wav")
+    # audio_file = open(filepath, "wb")
+    # decode_string = base64.b64decode(data["audio_base64"].split(",")[1])
+    # audio_file.write(decode_string)
+    # logger.info("asr processing...")
+    asr_buff.put(data["arr"])
+    logger.debug("asr_buff:{}".format(asr_buff))
+    # transcript = wav2vec2.run(filepath)
+    import random
+    transcript = "hihi {}".format(random.randint(0,100))
     transcript = transcript.lower()
+    asr_trans.put(transcript)
     logger.success(f'transcript: {transcript}')
-    emit('audio_to_client', {'filepath': filepath, 'transcript': transcript})
+    # emit('audio_to_client', {'filepath': filepath, 'transcript': transcript})
+    emit('audio_to_client', {'transcript': asr_trans.get()})
 
 
 @app.route('/upload', methods=['POST', 'GET'])

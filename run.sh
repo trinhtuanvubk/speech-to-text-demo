@@ -3,4 +3,4 @@ python3 app.py \
 --lm_path "./model_repository/language_model/4gram_small.arpa" \
 --device 0 \
 --port 1435 \
---use_language_model
+# --use_language_model

@@ -4,4 +4,4 @@
 *__pycache__/
 /ctcdecode/
 static/
-templates/index_*
+# templates/index_*

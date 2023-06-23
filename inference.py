@@ -17,7 +17,7 @@ class Inferencer:
         if model_path is not None:
             self.preload_model(model_path)
         self.lm_path = lm_path
-        if lm_path is not None: 
+        if lm_path is not None and use_lm: 
             self.beam_decoder = self.preload_lm(lm_path)
 
 
