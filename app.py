@@ -10,6 +10,7 @@ from flask_socketio import SocketIO, send, emit, join_room, leave_room
 import argparse
 from loguru import logger
 from six.moves import queue
+import numpy as np
 
 from inference import Inferencer
 
@@ -49,7 +50,7 @@ RECORD_DIR = "record"
 os.makedirs(os.path.join(STATIC_DIR, UPLOAD_DIR), exist_ok=True)
 os.makedirs(os.path.join(STATIC_DIR, RECORD_DIR), exist_ok=True)
 
-
+streaming_active = False
 @app.route("/")
 def index():
     return render_template(
@@ -79,17 +80,32 @@ def handle_audio_from_client(data):
     # decode_string = base64.b64decode(data["audio_base64"].split(",")[1])
     # audio_file.write(decode_string)
     # logger.info("asr processing...")
-    asr_buff.put(data["arr"])
-    logger.debug("asr_buff:{}".format(asr_buff))
-    # transcript = wav2vec2.run(filepath)
-    import random
-    transcript = "hihi {}".format(random.randint(0,100))
-    transcript = transcript.lower()
-    asr_trans.put(transcript)
-    logger.success(f'transcript: {transcript}')
-    # emit('audio_to_client', {'filepath': filepath, 'transcript': transcript})
-    emit('audio_to_client', {'transcript': asr_trans.get()})
+    global streaming_active
+    streaming_active = True
+    while streaming_active:
+        asr_buff.put(data['arr'])
+        logger.debug("asr_buff:{}".format(asr_buff))
+        float_buff = np.frombuffer(asr_buff.get(), dtype=np.int16) / 32767
+        logger.debug("asr_buff:{}".format(float_buff.shape))
+        # transcript = wav2vec2.run_with_buffer(float_buff)
+        # transcript = wav2vec2.run("./static/record/20230531_160615.wav")
+        import random
+        a=random.randint(0, 100)
+        # transcript = "hihi {}".format(random.randint(0,100))
+        transcript = 'hihi'
+        transcript = transcript.lower() + str(a)
+        asr_trans.put(transcript)
+        logger.success(f'transcript: {transcript}')
+        # emit('audio_to_client', {'filepath': filepath, 'transcript': transcript})
+        emit('audio_to_client', {'transcript': asr_trans.get()})
+        streaming_active = True
 
+
+@socketio.on('stop_streaming')
+def handle_stop_streaming():
+    global streaming_active
+    
+    streaming_active = False
 
 @app.route('/upload', methods=['POST', 'GET'])
 def handle_upload():

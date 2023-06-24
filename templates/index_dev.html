@@ -179,7 +179,9 @@
         var volume = null;
         var sampleRate = 16000;
         var blob = null;
+
         record.onclick = function(){
+            streaming = true;
             console.log('start')
             record.style.display = "None";
             div_upload.style.display = "None";
@@ -191,55 +193,7 @@
             recordingLength = 0
             processor.connect(context.destination);
             input.connect(processor);
-        // };
-
-        // stopRecord.onclick = function() {
-        //     console.log("stop")
-        //     //alert("stop")
-        //     document.getElementById("status").innerHTML = 'Status: <span style="color: mediumseagreen;">Recorded</span>';
-        //     record.style.display = "unset";
-        //     record.disabled = true;
-        //     stopRecord.style.display = "None";
-
-            // var leftBuffer = flattenArray(leftchannel, recordingLength); // flattenArray is on GitHub (see below)
-            // var rightBuffer = flattenArray(rightchannel, recordingLength);
-            // var interleaved = interleave(leftBuffer, rightBuffer); // interleave is on GitHub (see below)
-            // var buffer = new ArrayBuffer(44 + interleaved.length * 2);
-            // var view = new DataView(buffer);
-
-            // // RIFF chunk descriptor
-            // writeUTFBytes(view, 0, 'RIFF');
-            // view.setUint32(4, 44 + interleaved.length * 2, true);
-            // writeUTFBytes(view, 8, 'WAVE');
-
-            // // FMT sub-chunk
-            // writeUTFBytes(view, 12, 'fmt ');
-            // view.setUint32(16, 16, true); // chunkSize
-            // view.setUint16(20, 1, true); // wFormatTag
-            // view.setUint16(22, 2, true); // wChannels: stereo (2 channels)
-            // view.setUint32(24, sampleRate, true); // dwSamplesPerSec
-            // view.setUint32(28, sampleRate * 4, true); // dwAvgBytesPerSec
-            // view.setUint16(32, 4, true); // wBlockAlign
-            // view.setUint16(34, 16, true); // wBitsPerSample
-
-            // // data sub-chunk
-            // writeUTFBytes(view, 36, 'data');
-            // view.setUint32(40, interleaved.length * 2, true);
-
-            // // write the PCM samples
-            // var index = 44;
-            // var volume = 1;
-            // for (var i = 0; i < interleaved.length; i++) {
-            //     view.setInt16(index, interleaved[i] * (0x7FFF * volume), true);
-            //     index += 2;
-            // }
-
-            // var blob = new Blob([view], { type: 'audio/wav' });
-            // document.getElementById("status").innerHTML = 'Status: <span style="color: mediumseagreen;">Transcribing</span>';
-            // var reader = new FileReader();
-            // reader.readAsDataURL(blob); 
-            // reader.onloadend = function () { 
-            //     var base64String = reader.result; 
+    
             processor.onaudioprocess = function (audioProcessingEvent) {
             // socket.emit('sample_rate', sampleRate);
             // The input buffer is the song we loaded earlier
@@ -257,8 +211,9 @@
                 }
             outputData = floatTo16Bit(inputData, 0);
             // socket.emit('audio_to_server', {'audio_base64':base64String})
+            
             socket.emit('audio_to_server', {'arr':outputData.buffer})
-            }
+                }
 
             socket.on('audio_to_client', function(data){
                 // filepath = data['filepath']
@@ -281,6 +236,19 @@
         //     recordingLength += bufferSize;
         // };
     };
+        stopRecord.onclick = function() {
+                console.log("stop")
+                // alert("stop")
+                document.getElementById("status").innerHTML = 'Status: <span style="color: mediumseagreen;">Recorded</span>';
+                record.style.display = "unset";
+                record.disabled = true;
+                stopRecord.style.display = "None";
+                document.getElementById("transcript").innerText = "";
+                if (streaming) {
+                socket.emit('stop_streaming');
+                streaming = false;
+            }
+    }
 }
     
 </script>

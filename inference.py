@@ -98,31 +98,37 @@ class Inferencer:
                 # print(f"transcript: {self.transcribe(wav)}")
                 return self.transcribe(wav)
 
+    def run_with_buffer(self, buffer):
+        input_values = self.processor(torch.tensor(buffer), sampling_rate=16000, return_tensors="pt").input_values
+        logits = self.model(input_values.to(self.device)).logits
+        pred_ids = torch.argmax(logits, dim=-1)
+        pred_transcript = self.processor.batch_decode(pred_ids)[0]
+        return pred_transcript
 
-if __name__ == '__main__':
-    args = argparse.ArgumentParser(description='ASR INFERENCE ARGS')
-    args.add_argument('-f', '--test_filepath', type=str, required = True,
-                      help='It can be either the path to your audio file (.wav, .mp3) or a text file (.txt) containing a list of audio file paths.')
-    args.add_argument('-s', '--huggingface_folder', type=str, default = 'huggingface-hub',
-                      help='The folder where you stored the huggingface files. Check the <local_dir> argument of [huggingface.args] in config.toml. Default value: "huggingface-hub".')
-    args.add_argument('-m', '--model_path', type=str, default = None,
-                      help='Path to the model (.tar file) in saved/<project_name>/checkpoints. If not provided, default uses the pytorch_model.bin in the <HUGGINGFACE_FOLDER>')
-    args.add_argument('-d', '--device_id', type=int, default = 1,
-                      help='The device you want to test your model on if CUDA is available. Otherwise, CPU is used. Default value: 0')
-    args.add_argument('-lmp', '--language_model_path', type=str, default = "./huggingface-hub/4gram_small.arpa",
-                      help='The device you want to test your model on if CUDA is available. Otherwise, CPU is used. Default value: 0')
-    args.add_argument('-ulm', '--use_language_model', action = "store_true",
-                      help='Inference with language model. Default value: False')
-    args = args.parse_args()
+# if __name__ == '__main__':
+#     args = argparse.ArgumentParser(description='ASR INFERENCE ARGS')
+#     args.add_argument('-f', '--test_filepath', type=str, required = True,
+#                       help='It can be either the path to your audio file (.wav, .mp3) or a text file (.txt) containing a list of audio file paths.')
+#     args.add_argument('-s', '--huggingface_folder', type=str, default = 'huggingface-hub',
+#                       help='The folder where you stored the huggingface files. Check the <local_dir> argument of [huggingface.args] in config.toml. Default value: "huggingface-hub".')
+#     args.add_argument('-m', '--model_path', type=str, default = None,
+#                       help='Path to the model (.tar file) in saved/<project_name>/checkpoints. If not provided, default uses the pytorch_model.bin in the <HUGGINGFACE_FOLDER>')
+#     args.add_argument('-d', '--device_id', type=int, default = 1,
+#                       help='The device you want to test your model on if CUDA is available. Otherwise, CPU is used. Default value: 0')
+#     args.add_argument('-lmp', '--language_model_path', type=str, default = "./huggingface-hub/4gram_small.arpa",
+#                       help='The device you want to test your model on if CUDA is available. Otherwise, CPU is used. Default value: 0')
+#     args.add_argument('-ulm', '--use_language_model', action = "store_true",
+#                       help='Inference with language model. Default value: False')
+#     args = args.parse_args()
     
-    device = f"cuda:{args.device_id}" if torch.cuda.is_available() else "cpu"
-    inferencer = Inferencer(
-        device = device, 
-        huggingface_folder = args.huggingface_folder, 
-        model_path = args.model_path,
-        lm_path = args.language_model_path,
-        use_lm = args.use_language_model)
+#     device = f"cuda:{args.device_id}" if torch.cuda.is_available() else "cpu"
+#     inferencer = Inferencer(
+#         device = device, 
+#         huggingface_folder = args.huggingface_folder, 
+#         model_path = args.model_path,
+#         lm_path = args.language_model_path,
+#         use_lm = args.use_language_model)
 
-    inferencer.run(args.test_filepath)
-    # inferencer.preload_model
+#     inferencer.run(args.test_filepath)
+#     # inferencer.preload_model
 
