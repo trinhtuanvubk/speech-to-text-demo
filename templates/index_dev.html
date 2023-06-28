@@ -164,9 +164,9 @@
 
     function handlerFunction2(stream){
         var context = new (window.AudioContext || window.webkitAudioContext)({sampleRate: 16000});
-        bufferSize = 4096
-        numInChannels = 2
-        numOutChannels = 2
+        bufferSize = 16384
+        numInChannels = 1
+        numOutChannels = 1
         var input = context.createMediaStreamSource(stream);
         if (context.createScriptProcessor) {
             processor = context.createScriptProcessor(bufferSize, numInChannels, numOutChannels);
