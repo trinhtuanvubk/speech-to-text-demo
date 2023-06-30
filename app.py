@@ -130,7 +130,7 @@ def handle_audio_from_client(data):
         #     text_buff += asr_trans.get()
         #     emit('audio_to_client', {'transcript': text_buff})
         streaming_active = True
-    wavfile.write("test_1.wav", 44100, float_chunks)
+    # wavfile.write("test_1.wav", 44100, float_chunks)
 
 
 @socketio.on('stop_streaming')
