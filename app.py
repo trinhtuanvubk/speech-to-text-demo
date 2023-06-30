@@ -22,7 +22,7 @@ parser.add_argument('--lm_path', type=str,
 parser.add_argument('--huggingface_folder', type=str,
                     default="./model_repository/huggingface-hub")
 parser.add_argument('--model_path', type=str,
-                    default="./model_repository/w2v2_ckpt/best_model.tar")
+                    default=None)
 parser.add_argument('--use_language_model', action="store_true")
 parser.add_argument('--device', type=int, default="cpu")
 parser.add_argument('--port', type=int, default=1435)
@@ -165,5 +165,4 @@ def handle_upload():
 
 
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=args.port,
-                 ssl_context="adhoc", debug=False)
+    socketio.run(app, host="0.0.0.0", port=args.port, debug=False)

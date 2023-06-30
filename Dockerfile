@@ -5,6 +5,7 @@ WORKDIR /workspace
 ENV CUDA_HOME=/usr/local/cuda
 ENV TZ=Europe/London
 ENV HOME=/config
+ENV SSL_DISABLE=True
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt update -q \
