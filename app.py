@@ -24,12 +24,12 @@ parser.add_argument('--huggingface_folder', type=str,
 parser.add_argument('--model_path', type=str,
                     default=None)
 parser.add_argument('--use_language_model', action="store_true")
-parser.add_argument('--device', type=int, default="cpu")
+parser.add_argument('--device', type=str, default="cpu")
 parser.add_argument('--port', type=int, default=1435)
 args = parser.parse_args()
 
-device = f"cuda:{args.device_id}" if torch.cuda.is_available() else "cpu"
-# device = "cpu"
+device =  "cpu"
+
 wav2vec2 = Inferencer(
     device=device,
     huggingface_folder=args.huggingface_folder,
@@ -43,8 +43,6 @@ asr_trans = queue.Queue()
 # asr_buff = Queue()
 # asr_trans = Queue()
 text_buff = ""
-data_chunks = []
-
 app = Flask(__name__)
 socketio = SocketIO(app)
 
@@ -88,13 +86,12 @@ def handle_audio_from_client(data):
     # logger.info("asr processing...")
     global streaming_active
     global text_buff
-    global data_chunks
     streaming_active = True
+    data_chunks = []
     while streaming_active:
-        asr_buff.put(data['arr'])
-        logger.debug("asr_buff_ori:{}".format(len(data['arr'])))
-        float_buff = np.array(np.frombuffer(asr_buff.get(), dtype=np.int16)/ 32767)
-        logger.debug("asr_buff:{}".format(float_buff.shape))
+        decode_string = base64.b64decode(data["audio_base64"].split(",")[1])
+        int16_buff = np.frombuffer(decode_string, dtype=np.int16)
+        asr_buff.put(int16_buff)
         chunk = asr_buff.get()
         if chunk is None:
                 return
@@ -107,17 +104,20 @@ def handle_audio_from_client(data):
                     data_chunks.append(chunk)
                 except queue.Empty:
                     break
-        full_data_chunks = b''.join(data_chunks)
-        float_chunks = np.array(np.frombuffer(full_data_chunks, dtype=np.int16))
-        wavfile.write("test.wav", 16000 ,float_chunks)
+
+        if len(data_chunks) > 1:
+            float_chunks = np.concatenate(data_chunks)
+        else:
+            float_chunks = data_chunks[0]
+        wavfile.write("test.wav", 44100, float_chunks)
         # logger.debug("chunks:{}".format(float_chunks))
-        # transcript = wav2vec2.run_with_buffer(float_buff)
+        transcript = wav2vec2.run_with_buffer(float_chunks)
         # if transcript == "" or transcript ==" ":
             # transcript = "nothing shit"
-        transcript = wav2vec2.run("./cut_test.wav")
-        import random
-        a=random.randint(0, 100)
-        transcript+=str(a)
+        #transcript = wav2vec2.run("./cut_test.wav")
+        # import random
+        # a=random.randint(0, 100)
+        # transcript+=str(a)
         # transcript = "hihi {} \n".format(random.randint(0,100))
         # transcript = 'I'
         # transcript = transcript.lower() + str(a)
@@ -130,6 +130,7 @@ def handle_audio_from_client(data):
         #     text_buff += asr_trans.get()
         #     emit('audio_to_client', {'transcript': text_buff})
         streaming_active = True
+    wavfile.write("test_1.wav", 44100, float_chunks)
 
 
 @socketio.on('stop_streaming')
@@ -165,4 +166,4 @@ def handle_upload():
 
 
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=args.port, debug=False)
+    socketio.run(app, host="0.0.0.0", ssl_context="adhoc", port=args.port, debug=False)
